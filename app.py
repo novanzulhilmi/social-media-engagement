@@ -130,6 +130,20 @@ div[data-testid="stInfo"] {
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     animation: fadeIn 0.7s ease-out;
     height: 100%;
+    border-left: 5px solid #6a11cb; /* <-- Tambahan untuk visual */
+    transition: all 0.3s ease; /* BARU: transisi hover */
+}
+
+/* BARU: Efek hover untuk kartu presentasi */
+.presentation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+/* BARU: Class untuk highlight teks */
+.highlight-text {
+    color: #2575fc;
+    font-weight: bold;
 }
 </style>
 """
@@ -147,8 +161,6 @@ def load_lottieurl(url: str):
         return None
     return r.json()
 
-# URL untuk animasi Lottie
-LOTTIE_URL = "https://assets9.lottiefiles.com/packages/lf20_s9algjvi.json"
 # LOTTIE BARU untuk Halaman Presentasi
 LOTTIE_PRESENTATION_URL = "https://assets3.lottiefiles.com/packages/lf20_96bovlqg.json"
 
@@ -250,6 +262,7 @@ def get_advanced_metrics(_df, _df_keywords):
     
     # 4. Keyword Metrics (rata-rata global per keyword)
     keyword_df_cleaned = _df_keywords[_df_keywords['keyword'].notna()]
+    # Perbaikan dari error sebelumnya: langsung gunakan df yang sudah di-explode
     metrics['keyword'] = keyword_df_cleaned.groupby('keyword')['engagement_rate'].mean().to_dict()
     
     # 5. Golden Combo (Kombinasi Emas)
@@ -310,21 +323,25 @@ if df is not None:
     # --- ======================== HALAMAN BERANDA ======================== ---
     if selected_page == "Beranda":
         
-        lottie_animation = load_lottieurl(LOTTIE_URL)
+        # --- PERMINTAAN #2: Ganti Lottie dengan Gambar Lokal ---
         col_anim, col_text = st.columns([1, 2])
         
         with col_anim:
-            if lottie_animation:
-                st_lottie(
-                    lottie_animation,
-                    speed=1,
-                    reverse=False,
-                    loop=True,
-                    quality="high",
-                    height=300,
-                    width=300,
-                    key="analytics_animation",
+            try:
+                # Coba muat gambar lokal 'beranda.png'
+                st.image(
+                    "logo.png",
+                    use_container_width=True, # <-- PERBAIKAN (Poin 3): dari use_column_width
+                    caption="Visualisasi Analisis Data"
                 )
+            except FileNotFoundError:
+                # Fallback jika gambar tidak ditemukan
+                st.info("Letakkan file 'beranda.png' di folder yang sama dengan file .py ini untuk menampilkan gambar kustom di sini.")
+                # Anda bisa mengaktifkan Lottie lagi sebagai fallback jika mau
+                # lottie_animation = load_lottieurl("https://assets9.lottiefiles.com/packages/lf20_s9algjvi.json") 
+                # if lottie_animation:
+                #     st_lottie(lottie_animation, height=300, key="analytics_fallback")
+
         
         with col_text:
             st.title("Selamat Datang di Dashboard Analisis Engagement 🚀")
@@ -339,7 +356,7 @@ if df is not None:
             - **Prakiraan:** Dapatkan prediksi AI untuk konten baru.
             """)
             
-    # --- ======================== HALAMAN PRESENTASI (BARU) ======================== ---
+    # --- ======================== HALAMAN PRESENTASI (ROMBAK TOTAL) ======================== ---
     elif selected_page == "Presentasi":
         st.title("💡 Presentasi Proyek: Analisis Engagement")
         
@@ -347,21 +364,22 @@ if df is not None:
         with col1:
             lottie_pres = load_lottieurl(LOTTIE_PRESENTATION_URL)
             if lottie_pres:
-                st_lottie(lottie_pres, height=300)
+                st.lottie(lottie_pres, height=300)
         with col2:
             st.markdown("""
-            <div classclass="presentation-card">
-            Selamat datang di presentasi proyek ini. 
-            Aplikasi ini dirancang sebagai **Alat Bantu Pengambilan Keputusan (Decision Support Tool)** untuk strategi konten media sosial Anda.
-            
-            **Tujuannya adalah mengubah data mentah menjadi wawasan yang dapat ditindaklanjuti.**
+            <div class="presentation-card" style="text-align: center;"> <!-- PERBAIKAN (Poin 1): text-align: center -->
+            <h3>Selamat datang di presentasi proyek ini.</h3>
+            Aplikasi ini dirancang sebagai <span class="highlight-text">Alat Bantu Pengambilan Keputusan (Decision Support Tool)</span> untuk strategi konten media sosial Anda.
+            <br><br>
+            <strong>Tujuannya adalah mengubah data mentah menjadi wawasan yang dapat ditindaklanjuti.</strong>
             </div>
             """, unsafe_allow_html=True)
         
         st.markdown("<hr>", unsafe_allow_html=True)
         
+        # --- PERBAIKAN (Poin 2): Penjelasan Dataset Lebih Rinci ---
         st.subheader("1. Dataset: Bahan Bakar Kita")
-        st.markdown("Visualisasi data mentah yang kita gunakan:")
+        st.markdown("Aplikasi ini ditenagai oleh dataset `Social Media Engagement Dataset.csv`. Mari kita bedah data ini:")
         
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Total Postingan", f"{len(df):,}")
@@ -369,35 +387,135 @@ if df is not None:
         c3.metric("Total Bahasa", df['language'].nunique())
         c4.metric("Hari Teraktif", df['day_of_week'].mode()[0])
         
+        st.markdown("**Pratinjau Data Mentah:**")
+        st.dataframe(df.head())
+
+        # PERBAIKAN (Poin 2): Penjelasan kolom yang lebih rinci
+        st.markdown("**Penjelasan Lengkap Seluruh Kolom Dataset:**")
+        
+        # Buat daftar deskripsi kolom
+        column_descriptions = {
+            "day_of_week": "Hari (Senin, Selasa, dll.) saat konten diposting.",
+            "platform": "Platform media sosial (Instagram, Twitter, dll.) tempat konten diposting.",
+            "location": "Lokasi geografis (biasanya kota/negara) yang terkait dengan postingan.",
+            "language": "Kode bahasa (pt, ru, en, dll.) dari teks konten.",
+            "text_content": "Teks mentah aktual dari postingan tersebut.",
+            "hashtags": "Daftar hashtag (dipisahkan koma) yang digunakan dalam postingan.",
+            "keywords": "Daftar keyword (dipisahkan koma) yang diekstrak dari teks.",
+            "topic_category": "Kategori topik yang dibahas (Produk, Harga, dll.).",
+            "sentiment_score": "Skor numerik sentimen (-1 Negatif hingga +1 Positif).",
+            "sentiment_label": "Label sentimen (Positif, Negatif, Netral).",
+            "emotion_type": "Emosi spesifik yang terdeteksi (Senang, Marah, Bingung, dll.).",
+            "toxicity_score": "Skor numerik (0-1) yang menunjukkan seberapa toksik/negatif konten tersebut.",
+            "likes_count": "Jumlah 'Likes' yang diterima postingan.",
+            "shares_count": "Jumlah 'Shares' yang diterima postingan.",
+            "comments_count": "Jumlah 'Comments' yang diterima postingan.",
+            "impressions": "Jumlah total berapa kali postingan ditampilkan kepada pengguna.",
+            "engagement_rate": "Metrik kunci (biasanya (Likes+Comments+Shares)/Impressions) dalam format desimal (0-1).",
+            "brand_name": "Nama brand (Google, Nike, dll.) yang terkait dengan postingan.",
+            "product_name": "Nama produk spesifik (Chromebook, Epic React, dll.) yang disebutkan.",
+            "campaign_name": "Nama kampanye pemasaran (BlackFriday, PowerRelease, dll.) yang terkait."
+        }
+
+        # Tampilkan dalam dua kolom agar lebih rapi
+        col1_desc, col2_desc = st.columns(2)
+        
+        # Membagi daftar kolom
+        all_columns = list(column_descriptions.items())
+        mid_point = len(all_columns) // 2 + (len(all_columns) % 2)
+        
+        with col1_desc:
+            for col, desc in all_columns[:mid_point]:
+                st.markdown(f"- **{col}**: {desc}")
+
+        with col2_desc:
+            for col, desc in all_columns[mid_point:]:
+                st.markdown(f"- **{col}**: {desc}")
+        
+        st.markdown("**Ringkasan Statistik Data Numerik:**")
+        st.dataframe(df.describe())
+        
+        st.markdown("**Distribusi Platform:**")
+        platform_dist = df['platform'].value_counts().reset_index()
+        platform_dist.columns = ['Platform', 'Jumlah Postingan']
+        fig_pie = px.pie(platform_dist, 
+                         names='Platform', 
+                         values='Jumlah Postingan', 
+                         title='Distribusi Postingan di Seluruh Platform',
+                         hole=0.3)
+        fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+        st.plotly_chart(fig_pie, use_container_width=True)
+
+        st.markdown("<hr>", unsafe_allow_html=True)
+
+        # --- PERMINTAAN #3: Penjelasan Misi Lebih Rinci ---
         st.subheader("2. Misi & Tujuan")
-        st.markdown("Berdasarkan permintaan Anda, misi aplikasi ini terbagi menjadi dua bagian:")
+        st.markdown("Berdasarkan permintaan awal Anda, misi aplikasi ini terbagi menjadi dua tujuan utama:")
         
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("""
             <div class="presentation-card" style="background-color: rgba(37, 117, 252, 0.1);">
-            <h4>📊 Analisis Historis (Rangking)</h4>
-            <p><strong>Permintaan:</strong> "Saya ingin menampilkan rangking berdasarkan dataset... terpisah berdasarkan masing-masing rangkingnya."</p>
-            <p><strong>Solusi:</strong> Halaman 'Analisis Rangking' dengan 6 tab visual untuk melihat data teratas (Hari, Likes, Engagement, Bahasa, dll.) secara instan.</p>
+            <h4>Menganalisa Data Historis (Melihat ke Belakang)</h4>
+            <p><strong>Permintaan:</strong> "Saya ingin menganalisa... rangking... top three day... top engagement... top likes... top language... top hashtag... top keyword."</p>
+            <p><strong>Tujuan:</strong> Kita perlu memahami apa yang <strong class="highlight-text">telah berhasil</strong> di masa lalu. Pola apa yang muncul? Platform, hari, atau keyword mana yang paling menguntungkan? Ini adalah dasar dari semua strategi.</p>
             </div>
             """, unsafe_allow_html=True)
         with col2:
             st.markdown("""
             <div class="presentation-card" style="background-color: rgba(106, 27, 203, 0.1);">
-            <h4>🔮 Prakiraan AI (Prediksi)</h4>
-            <p><strong>Permintaan:</strong> "Tambahkan fitur untuk Prakiraan... prediksi engagement dibuat berdasarkan: Hari, Bahasa, Platform, Keyword, dll."</p>
-            <p><strong>Solusi:</strong> Halaman 'Prakiraan' yang menggunakan <strong>Random Forest Model</strong> untuk memprediksi 7 metrik berbeda dan memberikan saran cerdas.</p>
+            <h4>Memprediksi Performa Masa Depan (Melihat ke Depan)</h4>
+            <p><strong>Permintaan:</strong> "Saya ingin... Prakiraan... prediksi engagement dibuat berdasarkan: Hari, Bahasa, Platform, Keyword, Hashtag, dan Campaign."</p>
+            <p><strong>Tujuan:</strong> Menganalisa saja tidak cukup. Kita perlu menggunakan data historis untuk <strong class="highlight-text">melatih model AI (Machine Learning)</strong> yang dapat memprediksi performa konten yang <strong>belum ada</strong>.</p>
             </div>
             """, unsafe_allow_html=True)
-
-        st.subheader("3. Hasil Akhir & Contoh Visual")
-        st.markdown("Hasilnya adalah aplikasi interaktif ini. Berikut adalah contoh bagaimana Anda bisa menampilkan gambar dengan lebar maksimal (responsif) di Streamlit, sesuai permintaan Anda:")
+            
+        st.markdown("<hr>", unsafe_allow_html=True)
         
-        # Contoh Kode untuk Menampilkan Gambar Responsif
-        st.markdown(f"""
-        <p style="text-align: center;">Ini adalah gambar yang diatur dengan <code>max-width: 100%</code>.</p>
-        <img src='logo.png' class='responsive-image' alt='Contoh Gambar'>
+        # --- PERMINTAAN #3: Penjelasan Hasil (Menu) Lebih Rinci ---
+        st.subheader("3. Hasil Akhir: Penjelasan Fitur Aplikasi")
+        st.markdown("Untuk memenuhi kedua misi tersebut, aplikasi ini dibagi menjadi beberapa menu fungsional:")
+
+        st.markdown("""
+        <div class="presentation-card" style="margin-bottom: 15px;">
+        <h4>Beranda</h4>
+        <p>Halaman ini adalah pintu gerbang utama Anda. Ini memberikan sambutan dan navigasi visual ke fitur-fitur utama aplikasi, serta menampilkan visual utama (gambar yang Anda letakkan).</p>
+        </div>
+        
+        <div class_card="presentation-card" style="margin-bottom: 15px;">
+        <h4>Analisis Rangking</h4>
+        <p>Ini adalah jawaban untuk misi 'Menganalisa'. Halaman ini berisi 6 tab terpisah, masing-masing dengan <strong>visualisasi diagram batang</strong> untuk:
+        <ul>
+            <li>Hari Upload Terpopuler</li>
+            <li>Top 10 Postingan (Engagement Rate)</li>
+            <li>Top 10 Postingan (Likes)</li>
+            <li>Bahasa Paling Sering Digunakan</li>
+            <li>Top 10 Hashtag</li>
+            <li>Top 10 Keyword</li>
+        </ul>
+        Setiap diagram dilengkapi dengan <strong>kesimpulan dan saran</strong> otomatis berdasarkan data yang ditampilkan.
+        </p>
+        </div>
+        
+        <div class_card="presentation-card" style="margin-bottom: 15px;">
+        <h4>Prakiraan</h4>
+        <p>Ini adalah jawaban untuk misi 'Memprediksi'. Halaman ini adalah alat AI interaktif Anda:
+        <ol>
+            <li>Anda memasukkan 6 parameter konten baru (Hari, Bahasa, Platform, dll.).</li>
+            <li>Model AI <i>(Random Forest)</i> akan memprediksi 7 metrik performa secara instan (Likes, Shares, Comments, Engagement Rate, dll.).</li>
+            <li>Sistem kemudian memberikan <strong>Analisis & Saran Tingkat Lanjut</strong> yang membandingkan prediksi Anda dengan data historis, mengidentifikasi tujuan konten, dan mencari "titik terlemah" untuk dioptimalkan.</li>
+        </ol>
+        </p>
+        </div>
+        
+        <div class_card="presentation-card" style="margin-bottom: 15px;">
+        <h4>Presentasi</h4>
+        <p>Halaman yang sedang Anda lihat sekarang. Ini berfungsi sebagai dokumentasi dan penjelasan proyek secara keseluruhan, mulai dari dataset, tujuan, hingga hasil akhir.</p>
+        </div>
         """, unsafe_allow_html=True)
+
+
+        st.markdown("<hr>", unsafe_allow_html=True)
 
 
             
@@ -406,13 +524,14 @@ if df is not None:
         st.title("🏆 Analisis Rangking Engagement")
         st.markdown("Berikut adalah rangking teratas berdasarkan data Anda. Semuanya dalam format diagram batang **vertikal** untuk perbandingan visual.")
 
+        # --- PERBAIKAN: Menghapus emoji dari nama tab untuk menghindari SyntaxError ---
         tab_names = [
-            "☀️ Hari Upload", 
-            "🔥 Top 10 Engagement Rate", 
-            "❤️ Top 10 Likes",
-            "🌍 Bahasa", 
-            "🏷️ Top 10 Hashtag", 
-            "🔑 Top 10 Keyword"
+            "Hari Upload", 
+            "Top 10 Engagement Rate", 
+            "Top 10 Likes",
+            "Bahasa", 
+            "Top 10 Hashtag", 
+            "Top 10 Keyword"
         ]
         tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(tab_names)
 
@@ -426,7 +545,7 @@ if df is not None:
                          x='Hari', y='Jumlah Post',  # <-- Vertikal
                          title="Jumlah Postingan Berdasarkan Hari",
                          color='Jumlah Post', text_auto=True,
-                         color_continuous_scale='Blues',
+                         color_continuous_scale='Viridis', # <-- PERMINTAAN #1
                          labels={'Hari': 'Hari dalam Seminggu', 'Jumlah Post': 'Jumlah Postingan'})
             fig.update_layout(showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
@@ -438,7 +557,8 @@ if df is not None:
                 st.info(
                     f"💡 **Analisis Singkat:** Hari **{top_day_data['Hari']}** adalah hari tersibuk ({top_day_data['Jumlah Post']} postingan). "
                     f"Ini berarti audiens Anda paling aktif, TAPI juga **persaingan tertinggi**. "
-                    f"**Saran:** Jika performa Anda rendah di hari ini, coba posting di hari yang lebih 'tenang' (seperti **{bottom_day}**) untuk melihat apakah konten Anda lebih menonjol."
+                    f"**Saran:** Jika performa Anda rendah di hari ini, coba posting di hari yang lebih 'tenang' (seperti **{bottom_day}**) untuk melihat apakah konten Anda lebih menonjol.",
+                    icon="💡"
                 )
 
         with tab2: # Top 10 Engagement Rate
@@ -449,7 +569,7 @@ if df is not None:
             fig = px.bar(top_eng,
                          x='text_display', y='engagement_rate',  # <-- Vertikal
                          title="Top 10 Postingan: Engagement Rate",
-                         color='engagement_rate', color_continuous_scale='Greens',
+                         color='engagement_rate', color_continuous_scale='Plotly3', # <-- PERMINTAAN #1
                          labels={'engagement_rate': 'Engagement Rate', 'text_display': 'Judul Konten'},
                          hover_data={'text_content': True, 'platform': True, 'engagement_rate': ':.2%'} 
                          )
@@ -461,7 +581,8 @@ if df is not None:
                 top_eng_post_data = top_eng.iloc[0] 
                 st.info(
                     f"💡 **Analisis Singkat:** Postingan di **{top_eng_post_data['platform']}** dengan rate **{top_eng_post_data['engagement_rate']:.2%}** adalah *benchmark* (standar emas) Anda. "
-                    f"**Saran:** Pelajari **format**, **nada bicara (tone)**, dan **topik** dari postingan ini ({top_eng_post_data['text_content'][:40]}...). Apakah itu video? Pertanyaan? Gunakan ini sebagai template untuk konten berkinerja tinggi."
+                    f"**Saran:** Pelajari **format**, **nada bicara (tone)**, dan **topik** dari postingan ini ({top_eng_post_data['text_content'][:40]}...). Apakah itu video? Pertanyaan? Gunakan ini sebagai template untuk konten berkinerja tinggi.",
+                    icon="💡"
                 )
 
         with tab3: # Top 10 Likes
@@ -472,7 +593,7 @@ if df is not None:
             fig = px.bar(top_likes,
                          x='text_display', y='likes_count',  # <-- Vertikal
                          title="Top 10 Postingan: Likes",
-                         color='likes_count', text_auto=True, color_continuous_scale='Reds',
+                         color='likes_count', text_auto=True, color_continuous_scale='OrRd', # <-- PERMINTAAN #1
                          labels={'likes_count': 'Jumlah Likes', 'text_display': 'Judul Konten'},
                          hover_data={'text_content': True, 'platform': True}
                          )
@@ -483,7 +604,8 @@ if df is not None:
                 top_like_post_data = top_likes.iloc[0]
                 st.info(
                     f"💡 **Analisis Singkat:** Postingan di **{top_like_post_data['platform']}** ({int(top_like_post_data['likes_count']):,} likes) adalah 'juara viralitas' Anda. "
-                    f"**Saran:** Konten seperti ini sangat bagus untuk **Brand Awareness**. Gunakan format ({top_like_post_data['text_content'][:40]}...) untuk kampanye yang bertujuan menjangkau audiens baru yang belum mengenal Anda."
+                    f"**Saran:** Konten seperti ini sangat bagus untuk **Brand Awareness**. Gunakan format ({top_like_post_data['text_content'][:40]}...) untuk kampanye yang bertujuan menjangkau audiens baru yang belum mengenal Anda.",
+                    icon="💡"
                 )
 
         with tab4: # Bahasa
@@ -496,7 +618,7 @@ if df is not None:
                          x='Bahasa_Display', y='Jumlah',  # <-- Vertikal
                          title="Jumlah Postingan Berdasarkan Bahasa",
                          color='Jumlah', text_auto=True,
-                         color_continuous_scale='Cividis')
+                         color_continuous_scale='Plasma') # <-- PERMINTAAN #1
             fig.update_layout(xaxis_title="Bahasa")
             st.plotly_chart(fig, use_container_width=True)
             
@@ -506,7 +628,8 @@ if df is not None:
                 second_lang = lang_counts.iloc[1]['Bahasa_Display']
                 st.info(
                     f"💡 **Analisis Singkat:** Bahasa **{top_lang_data['Bahasa_Display']}** adalah audiens utama Anda ({top_lang_data['Jumlah']} postingan). "
-                    f"**Saran:** Pertimbangkan untuk membuat konten spesifik atau menerjemahkan konten unggulan ke dalam bahasa kedua terpopuler Anda (**{second_lang}**) untuk memperluas jangkauan ke segmen baru."
+                    f"**Saran:** Pertimbangkan untuk membuat konten spesifik atau menerjemahkan konten unggulan ke dalam bahasa kedua terpopuler Anda (**{second_lang}**) untuk memperluas jangkauan ke segmen baru.",
+                    icon="💡"
                 )
 
         with tab5: # Top 10 Hashtag
@@ -519,7 +642,7 @@ if df is not None:
                          x='Hashtag', y='Jumlah',  # <-- Vertikal
                          title="Top 10 Hashtag",
                          color='Jumlah', text_auto=True,
-                         color_continuous_scale='Viridis')
+                         color_continuous_scale='Turbo') # <-- PERMINTAAN #1
             st.plotly_chart(fig, use_container_width=True)
             
             # KESIMPULAN (DISEMPURNAKAN)
@@ -528,7 +651,8 @@ if df is not None:
                 second_hash = hash_counts.iloc[1]['Hashtag']
                 st.info(
                     f"💡 **Analisis Singkat:** Hashtag **#{top_hash_data['Hashtag']}** adalah tema sentral Anda ({top_hash_data['Jumlah']} kali). "
-                    f"**Saran:** Untuk menghindari kejenuhan, kombinasikan hashtag utama ini dengan hashtag *niche* atau *trending* (seperti **#{second_hash}**) untuk menjangkau audiens yang lebih spesifik namun tetap relevan."
+                    f"**Saran:** Untuk menghindari kejenuhan, kombinasikan hashtag utama ini dengan hashtag *niche* atau *trending* (seperti **#{second_hash}**) untuk menjangkau audiens yang lebih spesifik namun tetap relevan.",
+                    icon="💡"
                 )
 
         with tab6: # Top 10 Keyword
@@ -541,7 +665,7 @@ if df is not None:
                          x='Keyword', y='Jumlah',  # <-- Vertikal
                          title="Top 10 Keyword",
                          color='Jumlah', text_auto=True,
-                         color_continuous_scale='Plasma')
+                         color_continuous_scale='Electric') # <-- PERMINTAAN #1
             st.plotly_chart(fig, use_container_width=True)
             
             # KESIMPULAN (DISEMPURNAKAN)
@@ -549,7 +673,8 @@ if df is not None:
                 top_key_data = key_counts.iloc[0]
                 st.info(
                     f"💡 **Analisis Singkat:** Keyword **'{top_key_data['Keyword']}'** adalah fokus utama dari strategi konten Anda ({top_key_data['Jumlah']} kali). "
-                    f"**Saran:** Gunakan halaman 'Prakiraan' untuk menguji keyword ini di platform yang berbeda. Sangat mungkin keyword ini sangat laku di **Instagram**, tetapi kinerjanya biasa saja di **Twitter** (atau sebaliknya)."
+                    f"**Saran:** Gunakan halaman 'Prakiraan' untuk menguji keyword ini di platform yang berbeda. Sangat mungkin keyword ini sangat laku di **Instagram**, tetapi kinerjanya biasa saja di **Twitter** (atau sebaliknya).",
+                    icon="💡"
                 )
 
     # --- ======================== HALAMAN PRAKIRAAN ======================== ---
