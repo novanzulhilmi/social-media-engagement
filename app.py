@@ -132,6 +132,7 @@ div[data-testid="stInfo"] {
     height: 100%;
     border-left: 5px solid #6a11cb; /* <-- Tambahan untuk visual */
     transition: all 0.3s ease; /* BARU: transisi hover */
+    margin-bottom: 15px; /* BARU: Menambah jarak antar elemen vertikal */
 }
 
 /* BARU: Efek hover untuk kartu presentasi */
@@ -332,7 +333,7 @@ if df is not None:
                 st.image(
                     "logo.png",
                     use_container_width=True, # <-- PERBAIKAN (Poin 3): dari use_column_width
-                    caption="Analisis Media Sosial Engagement"
+                    caption="Visualisasi Analisis Data"
                 )
             except FileNotFoundError:
                 # Fallback jika gambar tidak ditemukan
@@ -360,6 +361,8 @@ if df is not None:
     elif selected_page == "Presentasi":
         st.title("💡 Presentasi Proyek: Analisis Engagement")
         
+        # --- PERBAIKAN: Menghapus st.columns ---
+        # Animasi Lottie sekarang akan menjadi full-width
         lottie_pres = load_lottieurl(LOTTIE_PRESENTATION_URL)
         if lottie_pres:
             st_lottie(lottie_pres, height=300)
@@ -373,6 +376,7 @@ if df is not None:
         <strong>Tujuannya adalah mengubah data mentah menjadi wawasan yang dapat ditindaklanjuti.</strong>
         </div>
         """, unsafe_allow_html=True)
+        # --- AKHIR PERBAIKAN ---
         
         st.markdown("<hr>", unsafe_allow_html=True)
         
@@ -476,12 +480,12 @@ if df is not None:
         st.markdown("Untuk memenuhi kedua misi tersebut, aplikasi ini dibagi menjadi beberapa menu fungsional:")
 
         st.markdown("""
-        <div class="presentation-card" style="margin-bottom: 15px;">
+        <div class="presentation-card">
         <h4>Beranda</h4>
         <p>Halaman ini adalah pintu gerbang utama Anda. Ini memberikan sambutan dan navigasi visual ke fitur-fitur utama aplikasi, serta menampilkan visual utama (gambar yang Anda letakkan).</p>
         </div>
         
-        <div class_card="presentation-card" style="margin-bottom: 15px;">
+        <div class="presentation-card">
         <h4>Analisis Rangking</h4>
         <p>Ini adalah jawaban untuk misi 'Menganalisa'. Halaman ini berisi 6 tab terpisah, masing-masing dengan <strong>visualisasi diagram batang</strong> untuk:
         <ul>
@@ -496,7 +500,7 @@ if df is not None:
         </p>
         </div>
         
-        <div class_card="presentation-card" style="margin-bottom: 15px;">
+        <div class="presentation-card">
         <h4>Prakiraan</h4>
         <p>Ini adalah jawaban untuk misi 'Memprediksi'. Halaman ini adalah alat AI interaktif Anda:
         <ol>
@@ -507,7 +511,7 @@ if df is not None:
         </p>
         </div>
         
-        <div class_card="presentation-card" style="margin-bottom: 15px;">
+        <div class="presentation-card">
         <h4>Presentasi</h4>
         <p>Halaman yang sedang Anda lihat sekarang. Ini berfungsi sebagai dokumentasi dan penjelasan proyek secara keseluruhan, mulai dari dataset, tujuan, hingga hasil akhir.</p>
         </div>
@@ -516,12 +520,21 @@ if df is not None:
 
         st.markdown("<hr>", unsafe_allow_html=True)
 
+        st.subheader("4. Contoh Visual & Kode Gambar")
+        st.markdown("Berikut adalah contoh bagaimana Anda bisa menampilkan gambar dengan lebar maksimal (responsif) di Streamlit. Kode ini digunakan untuk menampilkan gambar placeholder di bawah ini, dan logika yang sama (menggunakan CSS) dapat diterapkan pada gambar Anda sendiri.")
+        
+        # Contoh Kode untuk Menampilkan Gambar Responsif
+        st.markdown(f"""
+        <p style="text-align: center;">Ini adalah gambar yang diatur dengan <code>max-width: 100%</code>.</p>
+        <img src='{PLACEHOLDER_IMG_URL}' class='responsive-image' alt='Contoh Gambar'>
+        """, unsafe_allow_html=True)
+
 
             
     # --- ======================== HALAMAN ANALISIS RANGKING ======================== ---
     elif selected_page == "Analisis Rangking":
         st.title("🏆 Analisis Rangking Engagement")
-        st.markdown("Berikut adalah rangking teratas berdasarkan dataset Kaggle.")
+        st.markdown("Berikut adalah rangking teratas berdasarkan data Anda. Semuanya dalam format diagram batang **vertikal** untuk perbandingan visual.")
 
         # --- PERBAIKAN: Menghapus emoji dari nama tab untuk menghindari SyntaxError ---
         tab_names = [
@@ -569,7 +582,7 @@ if df is not None:
                          x='text_display', y='engagement_rate',  # <-- Vertikal
                          title="Top 10 Postingan: Engagement Rate",
                          color='engagement_rate', color_continuous_scale='Plotly3', # <-- PERMINTAAN #1
-                         labels={'engagement_rate': 'Engagement Rate', 'text_display': 'Judul Konten'},
+                         labels={'engagement_rate': 'Engagement Rate', 'text_display': 'Konten (Dipotong)'},
                          hover_data={'text_content': True, 'platform': True, 'engagement_rate': ':.2%'} 
                          )
             fig.update_layout(yaxis_tickformat='.1%') 
@@ -593,7 +606,7 @@ if df is not None:
                          x='text_display', y='likes_count',  # <-- Vertikal
                          title="Top 10 Postingan: Likes",
                          color='likes_count', text_auto=True, color_continuous_scale='OrRd', # <-- PERMINTAAN #1
-                         labels={'likes_count': 'Jumlah Likes', 'text_display': 'Judul Konten'},
+                         labels={'likes_count': 'Jumlah Likes', 'text_display': 'Konten (Dipotong)'},
                          hover_data={'text_content': True, 'platform': True}
                          )
             st.plotly_chart(fig, use_container_width=True)
@@ -684,160 +697,186 @@ if df is not None:
         with st.form("prediction_form"):
             st.subheader("Form Input Konten")
             
+            # --- PERBAIKAN: Menambahkan 'placeholder_text' ---
+            placeholder_text = "Pilih Opsi..." 
+            
             col1, col2, col3 = st.columns(3)
             with col1:
-                day = st.selectbox("Hari Upload:", sorted(unique_values['day_of_week']))
+                # --- PERBAIKAN: Menambahkan placeholder dan index=0 ---
+                day_options = [placeholder_text] + sorted(unique_values['day_of_week'])
+                day = st.selectbox("Hari Upload:", day_options, index=0)
+                
                 lang_codes_from_data = sorted(unique_values['language'])
-                lang_display_options = sorted([LANG_MAP.get(code, code) for code in lang_codes_from_data if code in LANG_MAP])
-                lang_display_selection = st.selectbox("Bahasa:", lang_display_options)
+                lang_display_options = [placeholder_text] + sorted([LANG_MAP.get(code, code) for code in lang_codes_from_data if code in LANG_MAP])
+                lang_display_selection = st.selectbox("Bahasa:", lang_display_options, index=0)
                 
             with col2:
-                platform = st.selectbox("Platform:", sorted(unique_values['platform']))
-                campaign = st.selectbox("Campaign:", sorted(unique_values['campaign_name']))
+                # --- PERBAIKAN: Menambahkan placeholder dan index=0 ---
+                platform_options = [placeholder_text] + sorted(unique_values['platform'])
+                platform = st.selectbox("Platform:", platform_options, index=0)
+                
+                campaign_options = [placeholder_text] + sorted(unique_values['campaign_name'])
+                campaign = st.selectbox("Campaign:", campaign_options, index=0)
             with col3:
-                keyword = st.selectbox("Keyword Utama:", sorted([k for k in unique_values['keyword_model'] if pd.notna(k)]))
-                hashtag = st.selectbox("Hashtag Utama:", sorted([h for h in unique_values['hashtag_model'] if pd.notna(h)]))
+                # --- PERBAIKAN: Menambahkan placeholder dan index=0 ---
+                keyword_options = [placeholder_text] + sorted([k for k in unique_values['keyword_model'] if pd.notna(k)])
+                keyword = st.selectbox("Keyword Utama:", keyword_options, index=0)
+                
+                hashtag_options = [placeholder_text] + sorted([h for h in unique_values['hashtag_model'] if pd.notna(h)])
+                hashtag = st.selectbox("Hashtag Utama:", hashtag_options, index=0)
 
             submit_button = st.form_submit_button("Dapatkan Prakiraan 🚀", type="primary")
 
         if submit_button:
-            lang_code = REVERSE_LANG_MAP.get(lang_display_selection, lang_display_selection)
-            input_data = pd.DataFrame({
-                'day_of_week': [day],
-                'language': [lang_code], 
-                'platform': [platform],
-                'keyword_model': [keyword],
-                'hashtag_model': [hashtag],
-                'campaign_name': [campaign]
-            })
+            # --- PERBAIKAN: Menambahkan blok validasi ---
+            if (day == placeholder_text or 
+                lang_display_selection == placeholder_text or 
+                platform == placeholder_text or 
+                campaign == placeholder_text or 
+                keyword == placeholder_text or 
+                hashtag == placeholder_text):
+                
+                st.warning("⚠️ Mohon lengkapi semua 6 pilihan untuk mendapatkan prakiraan.")
             
-            with st.spinner("Menganalisis & Memproses Prakiraan..."):
-                pred_reg = pipeline_reg.predict(input_data)[0]
-                pred_clf = pipeline_clf.predict(input_data)[0]
+            else: 
+                # --- PERBAIKAN: Memastikan sisa kode di-indentasi (digeser ke kanan) di dalam 'else' ---
+                lang_code = REVERSE_LANG_MAP.get(lang_display_selection, lang_display_selection)
+                input_data = pd.DataFrame({
+                    'day_of_week': [day],
+                    'language': [lang_code], 
+                    'platform': [platform],
+                    'keyword_model': [keyword],
+                    'hashtag_model': [hashtag],
+                    'campaign_name': [campaign]
+                }) # <-- Ini adalah ')' yang hilang dari error Anda
                 
-                results_reg = {
-                    'Likes': (pred_reg[0], "❤️"),
-                    'Shares': (pred_reg[1], "🔁"),
-                    'Comments': (pred_reg[2], "💬"),
-                    'Impressions': (pred_reg[4], "👁️"),
-                    'Toxicity Rate': (pred_reg[3], "☣️"),
-                    'Engagement Rate': (pred_reg[5], "🔥")
-                }
-                
-                emotion_emoji_map = {
-                    'Positive': '😄', 'Negative': '😠', 'Neutral': '😐',
-                    'Happy': '😊', 'Sad': '😢', 'Angry': '😠', 'Excited': '🤩',
-                    'Confused': '🤔', 'Surprised': '😲', 'Fear': '😨'
-                }
-                emotion_emoji = emotion_emoji_map.get(pred_clf, "❓")
+                with st.spinner("Menganalisis & Memproses Prakiraan..."):
+                    pred_reg = pipeline_reg.predict(input_data)[0]
+                    pred_clf = pipeline_clf.predict(input_data)[0]
+                    
+                    results_reg = {
+                        'Likes': (pred_reg[0], "❤️"),
+                        'Shares': (pred_reg[1], "🔁"),
+                        'Comments': (pred_reg[2], "💬"),
+                        'Impressions': (pred_reg[4], "👁️"),
+                        'Toxicity Rate': (pred_reg[3], "☣️"),
+                        'Engagement Rate': (pred_reg[5], "🔥")
+                    }
+                    
+                    emotion_emoji_map = {
+                        'Positive': '😄', 'Negative': '😠', 'Neutral': '😐',
+                        'Happy': '😊', 'Sad': '😢', 'Angry': '😠', 'Excited': '🤩',
+                        'Confused': '🤔', 'Surprised': '😲', 'Fear': '😨'
+                    }
+                    emotion_emoji = emotion_emoji_map.get(pred_clf, "❓")
 
-                st.subheader("🎉 Hasil Prakiraan:")
-                cols = st.columns(4)
-                cols[0].metric(label=f"Tipe Emosi", value=f"{emotion_emoji} {pred_clf}")
-                
-                i = 1 
-                for key, (value, emoji) in results_reg.items():
-                    col = cols[i % 4]
-                    if key in ['Toxicity Rate', 'Engagement Rate']:
-                        formatted_val = f"{value * 100:.2f}%"
-                        col.metric(label=f"{emoji} {key}", value=formatted_val)
+                    st.subheader("🎉 Hasil Prakiraan:")
+                    cols = st.columns(4)
+                    cols[0].metric(label=f"Tipe Emosi", value=f"{emotion_emoji} {pred_clf}")
+                    
+                    i = 1 
+                    for key, (value, emoji) in results_reg.items():
+                        col = cols[i % 4]
+                        if key in ['Toxicity Rate', 'Engagement Rate']:
+                            formatted_val = f"{value * 100:.2f}%"
+                            col.metric(label=f"{emoji} {key}", value=formatted_val)
+                        else:
+                            formatted_val = f"{int(value):,}"
+                            col.metric(label=f"{emoji} {key}", value=formatted_val)
+                        i += 1
+                    
+                    st.markdown("<hr>", unsafe_allow_html=True)
+                    
+                    # --- BAGIAN BARU: KESIMPULAN & SARAN (LOGIKA SANGAT DISEMPURNAKAN) ---
+                    st.subheader("💡 Analisis & Saran (Tingkat Lanjut)")
+                    
+                    # Mendapatkan data prediksi
+                    engagement_pred = pred_reg[5]
+                    toxicity_pred = pred_reg[3]
+                    impressions_pred = pred_reg[4]
+                    shares_pred = pred_reg[1]
+                    comments_pred = pred_reg[2]
+                    suggestions = []
+
+                    # --- Mendapatkan Metrik Kontekstual ---
+                    platform_metrics_dict = advanced_metrics.get('platform', {})
+                    platform_metrics = platform_metrics_dict.get(platform, {})
+                    
+                    avg_eng_platform = platform_metrics.get('avg_engagement', avg_engagement)
+                    avg_tox_platform = platform_metrics.get('avg_toxicity', avg_toxicity)
+                    top_day_platform = platform_metrics.get('top_day', top_day)
+
+                    avg_eng_day_choice = advanced_metrics.get('day', {}).get((platform, day), 0)
+                    avg_eng_top_day = advanced_metrics.get('day', {}).get((platform, top_day_platform), 0)
+                    
+                    avg_eng_keyword_choice = advanced_metrics.get('keyword', {}).get(keyword, 0)
+                    
+                    # --- (BARU) Analisis Tujuan Konten / Persona ---
+                    if toxicity_pred > 0.6 and pred_clf in ['Angry', 'Negative']:
+                        suggestions.append(f"🎯 **Tujuan Teridentifikasi: Konten Provokatif/Risiko Tinggi.** "
+                                           f"Emosi '{pred_clf}' dan Toksisitas {toxicity_pred:.2%} sangat tinggi. Ini akan memicu reaksi, tapi mungkin negatif. Gunakan HANYA jika ini disengaja (misal: debat panas, kritik). Risiko *bad buzz* tinggi.")
+                    elif engagement_pred > avg_eng_platform and shares_pred > (df['shares_count'].mean() * 1.2):
+                        suggestions.append(f"🎯 **Tujuan Teridentifikasi: Viralitas & Jangkauan.** "
+                                           f"Prediksi 'Shares' dan 'Engagement' Anda tinggi. Konten ini berpotensi besar untuk menjangkau audiens baru (viral). Sangat baik untuk kampanye *awareness*.")
+                    elif engagement_pred > avg_eng_platform and comments_pred > (df['comments_count'].mean() * 1.2):
+                        suggestions.append(f"🎯 **Tujuan Teridentifikasi: Membangun Komunitas.** "
+                                           f"Prediksi 'Comments' tinggi menunjukkan konten ini memicu diskusi. Sangat baik untuk membangun komunitas dan mendapatkan *feedback* langsung dari audiens setia Anda.")
+                    elif impressions_pred > (df['impressions'].mean() * 1.5) and engagement_pred < avg_eng_platform:
+                        suggestions.append(f"🎯 **Tujuan Teridentifikasi: Jangkauan Luas (Awareness).** "
+                                           f"**Peringatan:** Konten Anda diprediksi akan **dilihat** banyak orang (Impresi tinggi), tapi **tidak menarik** (Engagement rendah). Ini disebut 'Scroll-by'. **Saran:** Perbaiki *hook* visual atau *Call-to-Action* (CTA) Anda agar lebih memikat.")
                     else:
-                        formatted_val = f"{int(value):,}"
-                        col.metric(label=f"{emoji} {key}", value=formatted_val)
-                    i += 1
-                
-                st.markdown("<hr>", unsafe_allow_html=True)
-                
-                # --- BAGIAN BARU: KESIMPULAN & SARAN (LOGIKA SANGAT DISEMPURNAKAN) ---
-                st.subheader("💡 Analisis & Saran (Tingkat Lanjut)")
-                
-                # Mendapatkan data prediksi
-                engagement_pred = pred_reg[5]
-                toxicity_pred = pred_reg[3]
-                impressions_pred = pred_reg[4]
-                shares_pred = pred_reg[1]
-                comments_pred = pred_reg[2]
-                suggestions = []
-
-                # --- Mendapatkan Metrik Kontekstual ---
-                platform_metrics_dict = advanced_metrics.get('platform', {})
-                platform_metrics = platform_metrics_dict.get(platform, {})
-                
-                avg_eng_platform = platform_metrics.get('avg_engagement', avg_engagement)
-                avg_tox_platform = platform_metrics.get('avg_toxicity', avg_toxicity)
-                top_day_platform = platform_metrics.get('top_day', top_day)
-
-                avg_eng_day_choice = advanced_metrics.get('day', {}).get((platform, day), 0)
-                avg_eng_top_day = advanced_metrics.get('day', {}).get((platform, top_day_platform), 0)
-                
-                avg_eng_keyword_choice = advanced_metrics.get('keyword', {}).get(keyword, 0)
-                
-                # --- (BARU) Analisis Tujuan Konten / Persona ---
-                if toxicity_pred > 0.6 and pred_clf in ['Angry', 'Negative']:
-                    suggestions.append(f"🎯 **Tujuan Teridentifikasi: Konten Provokatif/Risiko Tinggi.** "
-                                       f"Emosi '{pred_clf}' dan Toksisitas {toxicity_pred:.2%} sangat tinggi. Ini akan memicu reaksi, tapi mungkin negatif. Gunakan HANYA jika ini disengaja (misal: debat panas, kritik). Risiko *bad buzz* tinggi.")
-                elif engagement_pred > avg_eng_platform and shares_pred > (df['shares_count'].mean() * 1.2):
-                    suggestions.append(f"🎯 **Tujuan Teridentifikasi: Viralitas & Jangkauan.** "
-                                       f"Prediksi 'Shares' dan 'Engagement' Anda tinggi. Konten ini berpotensi besar untuk menjangkau audiens baru (viral). Sangat baik untuk kampanye *awareness*.")
-                elif engagement_pred > avg_eng_platform and comments_pred > (df['comments_count'].mean() * 1.2):
-                    suggestions.append(f"🎯 **Tujuan Teridentifikasi: Membangun Komunitas.** "
-                                       f"Prediksi 'Comments' tinggi menunjukkan konten ini memicu diskusi. Sangat baik untuk membangun komunitas dan mendapatkan *feedback* langsung dari audiens setia Anda.")
-                elif impressions_pred > (df['impressions'].mean() * 1.5) and engagement_pred < avg_eng_platform:
-                    suggestions.append(f"🎯 **Tujuan Teridentifikasi: Jangkauan Luas (Awareness).** "
-                                       f"**Peringatan:** Konten Anda diprediksi akan **dilihat** banyak orang (Impresi tinggi), tapi **tidak menarik** (Engagement rendah). Ini disebut 'Scroll-by'. **Saran:** Perbaiki *hook* visual atau *Call-to-Action* (CTA) Anda agar lebih memikat.")
-                else:
-                    suggestions.append(f"🎯 **Tujuan Teridentifikasi: Performa Standar/Brand-Building.** "
-                                       f"Konten ini diprediksi akan berjalan sesuai standar. Ini adalah konten 'aman' yang baik untuk menjaga konsistensi brand Anda.")
+                        suggestions.append(f"🎯 **Tujuan Teridentifikasi: Performa Standar/Brand-Building.** "
+                                           f"Konten ini diprediksi akan berjalan sesuai standar. Ini adalah konten 'aman' yang baik untuk menjaga konsistensi brand Anda.")
 
 
-                # --- Analisis Performa Engagement (Sudah ada, tetap relevan) ---
-                if engagement_pred > avg_eng_platform * 1.1:
-                    suggestions.append(f"📈 **Performa Unggul:** Prediksi engagement Anda ({engagement_pred:.2%}) **jauh di atas rata-rata** untuk **{platform}** (rata-rata: {avg_eng_platform:.2%}). Kombinasi Anda terlihat sangat kuat!")
-                elif engagement_pred < avg_eng_platform * 0.9:
-                    suggestions.append(f"📉 **Performa Kurang:** Prediksi engagement Anda ({engagement_pred:.2%}) **di bawah rata-rata** untuk **{platform}** (rata-rata: {avg_eng_platform:.2%}). Mari kita lihat mengapa:")
-                else:
-                    suggestions.append(f"📊 **Performa Rata-rata:** Prediksi engagement Anda ({engagement_pred:.2%}) **sesuai rata-rata** untuk **{platform}** (rata-rata: {avg_eng_platform:.2%}). Ada ruang untuk optimalisasi.")
+                    # --- Analisis Performa Engagement (Sudah ada, tetap relevan) ---
+                    if engagement_pred > avg_eng_platform * 1.1:
+                        suggestions.append(f"📈 **Performa Unggul:** Prediksi engagement Anda ({engagement_pred:.2%}) **jauh di atas rata-rata** untuk **{platform}** (rata-rata: {avg_eng_platform:.2%}). Kombinasi Anda terlihat sangat kuat!")
+                    elif engagement_pred < avg_eng_platform * 0.9:
+                        suggestions.append(f"📉 **Performa Kurang:** Prediksi engagement Anda ({engagement_pred:.2%}) **di bawah rata-rata** untuk **{platform}** (rata-rata: {avg_eng_platform:.2%}). Mari kita lihat mengapa:")
+                    else:
+                        suggestions.append(f"📊 **Performa Rata-rata:** Prediksi engagement Anda ({engagement_pred:.2%}) **sesuai rata-rata** untuk **{platform}** (rata-rata: {avg_eng_platform:.2%}). Ada ruang untuk optimalisasi.")
 
-                # --- Analisis "Weakest Link" (Hari) (Sudah ada, tetap relevan) ---
-                if avg_eng_day_choice > 0 and avg_eng_top_day > 0 and avg_eng_day_choice < avg_eng_top_day:
-                    suggestions.append(
-                        f"  - **Peluang Hari:** Anda memilih **{day}**, yang di **{platform}** memiliki rata-rata engagement ({avg_eng_day_choice:.2%}). "
-                        f"Hari terkuat di **{platform}** adalah **{top_day_platform}** (rata-rata: {avg_eng_top_day:.2%}). "
-                        f"**Saran:** Jika topiknya fleksibel, pertimbangkan beralih ke **{top_day_platform}** untuk potensi peningkatan."
-                    )
-                
-                # --- Analisis Keyword (Sudah ada, tetap relevan) ---
-                if avg_eng_keyword_choice > 0 and avg_eng_keyword_choice > avg_engagement:
-                    suggestions.append(f"  - **Pilihan Keyword Baik:** Keyword Anda ('{keyword}') adalah pilihan kuat! Secara historis, keyword ini memiliki rata-rata engagement {avg_eng_keyword_choice:.2%}.")
-                elif avg_eng_keyword_choice > 0:
-                    suggestions.append(f"  - **Peringatan Keyword:** Keyword Anda ('{keyword}') secara historis memiliki engagement ({avg_eng_keyword_choice:.2%}) di bawah rata-rata global. Pastikan konten Anda sangat menonjol untuk mengatasi ini.")
-                
-                # --- Analisis Toksisitas & Emosi (Sintesis) (Sudah ada, tetap relevan) ---
-                if pred_clf in ['Negative', 'Angry', 'Sad', 'Fear'] and toxicity_pred < 0.6: # Filter out high-risk
-                    suggestions.append(
-                        f"  - **Analisis Emosi:** Anda mendapat prediksi emosi **{pred_clf}**. "
-                        f"Jika ini *sengaja* (misal: konten sedih/serius), ini wajar. "
-                        f"Jika *tidak disengaja*, emosi negatif ini bisa menjadi alasan utama prediksi engagement Anda (jika rendah). Pertimbangkan melembutkan bahasa/keyword."
-                    )
-                elif toxicity_pred > avg_tox_platform and toxicity_pred < 0.6: # Filter out high-risk
-                    suggestions.append(f"  - **Peringatan Toksisitas:** Emosi Anda **{pred_clf}** (positif/netral), tetapi toksisitas Anda ({toxicity_pred:.2%}) masih **di atas rata-rata** {platform} ({avg_tox_platform:.2%}). "
-                                       f"Ini mungkin karena keyword/hashtag ('{keyword}', '{hashtag}') yang bisa disalahartikan. Cek ulang.")
-                
-                # --- Golden Combo Insight (Sudah ada, tetap relevan) ---
-                if 'golden_combo' in advanced_metrics:
-                    g_plat, g_day, g_lang_code = advanced_metrics['golden_combo']
-                    g_lang_display = LANG_MAP.get(g_lang_code, g_lang_code)
-                    g_avg = advanced_metrics['golden_avg']
-                    suggestions.append(f"  - **Insight Tambahan:** Hanya sebagai info, 'kombinasi emas' di data Anda (engagement tertinggi) adalah: **{g_plat}** + **{g_day}** + **{g_lang_display}**, dengan rata-rata engagement {g_avg:.2%}.")
-                
+                    # --- Analisis "Weakest Link" (Hari) (Sudah ada, tetap relevan) ---
+                    if avg_eng_day_choice > 0 and avg_eng_top_day > 0 and avg_eng_day_choice < avg_eng_top_day:
+                        suggestions.append(
+                            f"  - **Peluang Hari:** Anda memilih **{day}**, yang di **{platform}** memiliki rata-rata engagement ({avg_eng_day_choice:.2%}). "
+                            f"Hari terkuat di **{platform}** adalah **{top_day_platform}** (rata-rata: {avg_eng_top_day:.2%}). "
+                            f"**Saran:** Jika topiknya fleksibel, pertimbangkan beralih ke **{top_day_platform}** untuk potensi peningkatan."
+                        )
+                    
+                    # --- Analisis Keyword (Sudah ada, tetap relevan) ---
+                    if avg_eng_keyword_choice > 0 and avg_eng_keyword_choice > avg_engagement:
+                        suggestions.append(f"  - **Pilihan Keyword Baik:** Keyword Anda ('{keyword}') adalah pilihan kuat! Secara historis, keyword ini memiliki rata-rata engagement {avg_eng_keyword_choice:.2%}.")
+                    elif avg_eng_keyword_choice > 0:
+                        suggestions.append(f"  - **Peringatan Keyword:** Keyword Anda ('{keyword}') secara historis memiliki engagement ({avg_eng_keyword_choice:.2%}) di bawah rata-rata global. Pastikan konten Anda sangat menonjol untuk mengatasi ini.")
+                    
+                    # --- Analisis Toksisitas & Emosi (Sintesis) (Sudah ada, tetap relevan) ---
+                    if pred_clf in ['Negative', 'Angry', 'Sad', 'Fear'] and toxicity_pred < 0.6: # Filter out high-risk
+                        suggestions.append(
+                            f"  - **Analisis Emosi:** Anda mendapat prediksi emosi **{pred_clf}**. "
+                            f"Jika ini *sengaja* (misal: konten sedih/serius), ini wajar. "
+                            f"Jika *tidak disengaja*, emosi negatif ini bisa menjadi alasan utama prediksi engagement Anda (jika rendah). Pertimbangkan melembutkan bahasa/keyword."
+                        )
+                    elif toxicity_pred > avg_tox_platform and toxicity_pred < 0.6: # Filter out high-risk
+                        suggestions.append(f"  - **Peringatan Toksisitas:** Emosi Anda **{pred_clf}** (positif/netral), tetapi toksisitas Anda ({toxicity_pred:.2%}) masih **di atas rata-rata** {platform} ({avg_tox_platform:.2%}). "
+                                           f"Ini mungkin karena keyword/hashtag ('{keyword}', '{hashtag}') yang bisa disalahartikan. Cek ulang.")
+                    
+                    # --- Golden Combo Insight (Sudah ada, tetap relevan) ---
+                    if 'golden_combo' in advanced_metrics:
+                        g_plat, g_day, g_lang_code = advanced_metrics['golden_combo']
+                        g_lang_display = LANG_MAP.get(g_lang_code, g_lang_code)
+                        g_avg = advanced_metrics['golden_avg']
+                        suggestions.append(f"  - **Insight Tambahan:** Hanya sebagai info, 'kombinasi emas' di data Anda (engagement tertinggi) adalah: **{g_plat}** + **{g_day}** + **{g_lang_display}**, dengan rata-rata engagement {g_avg:.2%}.")
+                    
 
-                # Tampilkan semua saran
-                if suggestions:
-                    st.info("Berdasarkan data historis Anda:", icon="ℹ️")
-                    for suggestion in suggestions:
-                        st.markdown(f"- {suggestion}")
-                
-                st.info("ℹ️ **Disclaimer:** Prakiraan dan saran ini dibuat berdasarkan model Machine Learning dari data historis pada website Kaggle. Hasil data ini dibuat pada tahun 2025.")
+                    # Tampilkan semua saran
+                    if suggestions:
+                        st.info("Berdasarkan data historis Anda:", icon="ℹ️")
+                        for suggestion in suggestions:
+                            st.markdown(f"- {suggestion}")
+                    
+                    st.info("ℹ️ **Disclaimer:** Prakiraan dan saran ini dibuat berdasarkan model Machine Learning dari data historis Anda. Hasil ini adalah estimasi dan bukan jaminan performa.")
 
 else:
     st.error("Gagal memuat data. Aplikasi tidak dapat dijalankan.")
