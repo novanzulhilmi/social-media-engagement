@@ -519,17 +519,6 @@ if df is not None:
 
 
         st.markdown("<hr>", unsafe_allow_html=True)
-
-        st.subheader("4. Contoh Visual & Kode Gambar")
-        st.markdown("Berikut adalah contoh bagaimana Anda bisa menampilkan gambar dengan lebar maksimal (responsif) di Streamlit. Kode ini digunakan untuk menampilkan gambar placeholder di bawah ini, dan logika yang sama (menggunakan CSS) dapat diterapkan pada gambar Anda sendiri.")
-        
-        # Contoh Kode untuk Menampilkan Gambar Responsif
-        st.markdown(f"""
-        <p style="text-align: center;">Ini adalah gambar yang diatur dengan <code>max-width: 100%</code>.</p>
-        <img src='{PLACEHOLDER_IMG_URL}' class='responsive-image' alt='Contoh Gambar'>
-        """, unsafe_allow_html=True)
-
-
             
     # --- ======================== HALAMAN ANALISIS RANGKING ======================== ---
     elif selected_page == "Analisis Rangking":
@@ -582,7 +571,7 @@ if df is not None:
                          x='text_display', y='engagement_rate',  # <-- Vertikal
                          title="Top 10 Postingan: Engagement Rate",
                          color='engagement_rate', color_continuous_scale='Plotly3', # <-- PERMINTAAN #1
-                         labels={'engagement_rate': 'Engagement Rate', 'text_display': 'Konten (Dipotong)'},
+                         labels={'engagement_rate': 'Engagement Rate', 'text_display': 'Judul Konten'},
                          hover_data={'text_content': True, 'platform': True, 'engagement_rate': ':.2%'} 
                          )
             fig.update_layout(yaxis_tickformat='.1%') 
@@ -606,7 +595,7 @@ if df is not None:
                          x='text_display', y='likes_count',  # <-- Vertikal
                          title="Top 10 Postingan: Likes",
                          color='likes_count', text_auto=True, color_continuous_scale='OrRd', # <-- PERMINTAAN #1
-                         labels={'likes_count': 'Jumlah Likes', 'text_display': 'Konten (Dipotong)'},
+                         labels={'likes_count': 'Jumlah Likes', 'text_display': 'Judul Konten'},
                          hover_data={'text_content': True, 'platform': True}
                          )
             st.plotly_chart(fig, use_container_width=True)
@@ -876,7 +865,7 @@ if df is not None:
                         for suggestion in suggestions:
                             st.markdown(f"- {suggestion}")
                     
-                    st.info("ℹ️ **Disclaimer:** Prakiraan dan saran ini dibuat berdasarkan model Machine Learning dari data historis Anda. Hasil ini adalah estimasi dan bukan jaminan performa.")
+                    st.info("ℹ️ **Disclaimer:** Prakiraan dan saran ini dibuat berdasarkan model Machine Learning dari data historis pada website Kaggle. Hasil data ini dibuat pada tahun 2025.")
 
 else:
     st.error("Gagal memuat data. Aplikasi tidak dapat dijalankan.")
