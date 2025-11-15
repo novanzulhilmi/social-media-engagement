@@ -332,7 +332,7 @@ if df is not None:
                 st.image(
                     "logo.png",
                     use_container_width=True, # <-- PERBAIKAN (Poin 3): dari use_column_width
-                    caption="Visualisasi Analisis Data"
+                    caption="Analisis Media Sosial Engagement"
                 )
             except FileNotFoundError:
                 # Fallback jika gambar tidak ditemukan
@@ -360,20 +360,19 @@ if df is not None:
     elif selected_page == "Presentasi":
         st.title("💡 Presentasi Proyek: Analisis Engagement")
         
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            lottie_pres = load_lottieurl(LOTTIE_PRESENTATION_URL)
-            if lottie_pres:
-                st.lottie(lottie_pres, height=300)
-        with col2:
-            st.markdown("""
-            <div class="presentation-card" style="text-align: center;"> <!-- PERBAIKAN (Poin 1): text-align: center -->
-            <h3>Selamat datang di presentasi proyek ini.</h3>
-            Aplikasi ini dirancang sebagai <span class="highlight-text">Alat Bantu Pengambilan Keputusan (Decision Support Tool)</span> untuk strategi konten media sosial Anda.
-            <br><br>
-            <strong>Tujuannya adalah mengubah data mentah menjadi wawasan yang dapat ditindaklanjuti.</strong>
-            </div>
-            """, unsafe_allow_html=True)
+        lottie_pres = load_lottieurl(LOTTIE_PRESENTATION_URL)
+        if lottie_pres:
+            st_lottie(lottie_pres, height=300)
+        
+        # Kartu "Selamat Datang" sekarang akan menjadi full-width
+        st.markdown("""
+        <div class="presentation-card" style="text-align: center;"> <!-- PERBAIKAN (Poin 1): text-align: center -->
+        <h3>Selamat datang di presentasi proyek ini.</h3>
+        Aplikasi ini dirancang sebagai <span class="highlight-text">Alat Bantu Pengambilan Keputusan (Decision Support Tool)</span> untuk strategi konten media sosial Anda.
+        <br><br>
+        <strong>Tujuannya adalah mengubah data mentah menjadi wawasan yang dapat ditindaklanjuti.</strong>
+        </div>
+        """, unsafe_allow_html=True)
         
         st.markdown("<hr>", unsafe_allow_html=True)
         
@@ -522,7 +521,7 @@ if df is not None:
     # --- ======================== HALAMAN ANALISIS RANGKING ======================== ---
     elif selected_page == "Analisis Rangking":
         st.title("🏆 Analisis Rangking Engagement")
-        st.markdown("Berikut adalah rangking teratas berdasarkan data Anda. Semuanya dalam format diagram batang **vertikal** untuk perbandingan visual.")
+        st.markdown("Berikut adalah rangking teratas berdasarkan dataset Kaggle.")
 
         # --- PERBAIKAN: Menghapus emoji dari nama tab untuk menghindari SyntaxError ---
         tab_names = [
@@ -838,7 +837,7 @@ if df is not None:
                     for suggestion in suggestions:
                         st.markdown(f"- {suggestion}")
                 
-                st.info("ℹ️ **Disclaimer:** Prakiraan dan saran ini dibuat berdasarkan model Machine Learning dari data historis Anda. Hasil ini adalah estimasi dan bukan jaminan performa.")
+                st.info("ℹ️ **Disclaimer:** Prakiraan dan saran ini dibuat berdasarkan model Machine Learning dari data historis pada website Kaggle. Hasil data ini dibuat pada tahun 2025.")
 
 else:
     st.error("Gagal memuat data. Aplikasi tidak dapat dijalankan.")
